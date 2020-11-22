@@ -1,0 +1,1 @@
+export { HistoryDocumentType } from './HistoryDocumentType';

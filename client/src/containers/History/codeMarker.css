@@ -1,0 +1,13 @@
+/*
+
+По неведомой причине библиотека редактора кода не содержит в себе стилей для подсветки diff,
+поэтому создаем файл с необходимыми стилями и дебильно импортим его в компоненте.
+https://github.com/securingsincity/react-ace/issues/555
+
+*/
+
+.codeMarker {
+  position: absolute;
+  z-index: 20;
+  background: #fff677;
+}

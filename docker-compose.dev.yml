@@ -1,0 +1,39 @@
+version: '2.4'
+
+services:
+  main:
+    container_name: ad-main-dev
+    image: ad-main-dev:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    env_file:
+      - .env
+    networks:
+      - webnet
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    volumes:
+      - ./server/src:/usr/src/app/src
+      - /usr/src/app/node_modules
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    networks:
+      - webnet
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_DATABASE}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    volumes:
+      - mongodata:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+networks:
+  webnet:
+volumes:
+  mongodata:

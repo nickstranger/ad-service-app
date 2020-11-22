@@ -1,0 +1,6 @@
+Dockerfile*
+docker-compose.*
+.env
+**/node_modules
+**/npm-debug.log
+**/test
