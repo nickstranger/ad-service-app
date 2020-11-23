@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Form, Formik, FormikHelpers } from 'formik';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';

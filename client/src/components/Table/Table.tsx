@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import MUIDataTable, { MUIDataTableOptions, MUIDataTableProps } from 'mui-datatables';
 
 import { useTableStyles } from './Table.styles';

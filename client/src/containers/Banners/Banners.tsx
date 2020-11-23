@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables';
 import TableCell from '@material-ui/core/TableCell';

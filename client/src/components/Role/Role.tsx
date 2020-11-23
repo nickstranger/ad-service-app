@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 
 import { useRoleStyles } from './Role.styles';
 import { getRenderParamsByUserRole } from 'common/helpers';

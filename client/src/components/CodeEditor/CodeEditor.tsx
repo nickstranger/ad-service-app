@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { ErrorMessage } from 'formik';
 import AceEditor, { IAceEditorProps } from 'react-ace';
 import 'ace-builds/src-noconflict/ext-language_tools';

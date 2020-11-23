@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Form, Formik, FormikErrors, FormikHelpers } from 'formik';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';

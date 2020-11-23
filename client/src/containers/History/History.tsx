@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables';
 import { diff as DiffEditor } from 'react-ace';

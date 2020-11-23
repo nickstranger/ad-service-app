@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import Toolbar from '@material-ui/core/Toolbar';
 
 import { useMainContainerStyles } from './MainContainer.styles';

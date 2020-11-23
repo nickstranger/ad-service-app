@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { SnackbarKey, useSnackbar } from 'notistack';
 import IconButton from '@material-ui/core/IconButton';
