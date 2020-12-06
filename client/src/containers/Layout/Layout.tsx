@@ -38,14 +38,14 @@ const theme = createMuiTheme({
 });
 
 export const Layout: FC = ({ children }) => {
-  const { token, authUserRole } = useSelector((state: RootState) => state.auth);
-  const isAuthenticated = Boolean(token);
+  const { accessToken, role } = useSelector((state: RootState) => state.auth);
+  const isAuthenticated = Boolean(accessToken);
   return (
     <ThemeProvider theme={theme}>
       <SnackbarProvider>
         <Notifier />
         <Appbar isAuthenticated={isAuthenticated} />
-        {isAuthenticated && authUserRole ? <Sidebar userRole={authUserRole} /> : null}
+        {isAuthenticated && role ? <Sidebar userRole={role} /> : null}
         <MainContainer>{children}</MainContainer>
       </SnackbarProvider>
     </ThemeProvider>

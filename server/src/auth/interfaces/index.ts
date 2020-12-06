@@ -1,1 +1,1 @@
-export { Token } from './token.interface';
+export { AuthResponse } from './auth-response.interface';

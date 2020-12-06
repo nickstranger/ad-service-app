@@ -1,27 +1,22 @@
 import { axiosInstance } from 'common/axios-instance';
 import { strings } from 'common/strings';
-import * as actionTypes from './auth.action-types';
-import { AuthActionTypes } from './auth.types';
-import { showErrorNotifier, showInfoNotifier } from '../notifier/notifier.actions';
 import { UserRole } from 'entities/User';
+import { showErrorNotifier, showInfoNotifier } from '../notifier/notifier.actions';
+import * as actionTypes from './auth.action-types';
+import { AuthActionTypes, AuthResponse } from './auth.types';
 
-const authSuccess = (
-  token: string,
-  authUserId: string,
-  authUserRole: UserRole,
-  authUsername: string
-): AuthActionTypes => {
+const authSuccess = (authData: AuthResponse): AuthActionTypes => {
   return {
     type: actionTypes.AUTH_SUCCESS,
-    payload: { authUserId, authUsername, authUserRole, token }
+    payload: authData
   };
 };
 
 export const authLogout = (): AuthActionTypes => {
-  localStorage.removeItem('authUserId');
-  localStorage.removeItem('authUsername');
-  localStorage.removeItem('authUserRole');
-  localStorage.removeItem('token');
+  localStorage.removeItem('_id');
+  localStorage.removeItem('username');
+  localStorage.removeItem('role');
+  localStorage.removeItem('accessToken');
   localStorage.removeItem('expirationDate');
   return {
     type: actionTypes.AUTH_LOGOUT
@@ -34,7 +29,7 @@ export const authStateChecked = (): AuthActionTypes => {
   };
 };
 
-const checkAuthTimeout = (expirationTime: number) => {
+const setRefreshTimeout = (expirationTime: number) => {
   return (dispatch: any) => {
     // за 5 минут до автоматического логаута обновляем токен
     setTimeout(() => {
@@ -46,14 +41,12 @@ const checkAuthTimeout = (expirationTime: number) => {
 const authRefresh = () => {
   return async (dispatch: any) => {
     try {
-      const response = await axiosInstance.get('/auth/refreshToken');
+      const response = await axiosInstance.get<AuthResponse>('/auth/refreshToken');
+      const { data } = response;
+      setAuthDataToLocalStorage(data);
 
-      const { accessToken, expiresIn, id, role, username } = response.data;
-
-      setAuthDataToLocalStorage(accessToken, expiresIn, id, role, username);
-
-      dispatch(authSuccess(accessToken, id, role, username));
-      dispatch(checkAuthTimeout(expiresIn * 1000));
+      dispatch(authSuccess(data));
+      dispatch(setRefreshTimeout(data.expiresIn * 1000));
     } catch (error) {
       dispatch(authLogout());
     }
@@ -63,8 +56,8 @@ const authRefresh = () => {
 export const auth = (
   username: string,
   password: string,
-  setSubmitting: Function,
-  setErrors: Function,
+  setSubmitting: (isSubmitting: boolean) => void,
+  setErrors: (errors: any) => void,
   backToPrevRoute: () => void
 ) => {
   return async (dispatch: any) => {
@@ -73,15 +66,13 @@ export const auth = (
       password: password
     };
     try {
-      const response = await axiosInstance.post('/auth/login', authData);
-
-      const { accessToken, expiresIn, id, role, username } = response.data;
-
-      setAuthDataToLocalStorage(accessToken, expiresIn, id, role, username);
+      const response = await axiosInstance.post<AuthResponse>('/auth/login', authData);
+      const { data } = response;
+      setAuthDataToLocalStorage(data);
 
       setSubmitting(false);
-      dispatch(authSuccess(accessToken, id, role, username));
-      dispatch(checkAuthTimeout(expiresIn * 1000));
+      dispatch(authSuccess(data));
+      dispatch(setRefreshTimeout(data.expiresIn * 1000));
       dispatch(showInfoNotifier(strings.info.auth));
       backToPrevRoute();
     } catch (error) {
@@ -94,46 +85,37 @@ export const auth = (
   };
 };
 
-const setAuthDataToLocalStorage = (
-  accessToken: string,
-  expiresIn: number,
-  id: string,
-  role: UserRole,
-  username: string
-) => {
+const setAuthDataToLocalStorage = (authData: AuthResponse) => {
+  const { _id, username, role, accessToken, expiresIn } = authData;
   const expirationDate = Number(new Date(new Date().getTime() + expiresIn * 1000));
-  localStorage.setItem('authUserId', id);
-  localStorage.setItem('authUsername', username);
-  localStorage.setItem('authUserRole', role);
-  localStorage.setItem('token', accessToken);
+  localStorage.setItem('_id', _id);
+  localStorage.setItem('username', username);
+  localStorage.setItem('role', role);
+  localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('expirationDate', expirationDate.toString());
 };
 
 export const authCheckState = () => {
   return (dispatch: any) => {
-    const authUserId = localStorage.getItem('authUserId');
-    const authUsername = localStorage.getItem('authUsername');
-    const authUserRole = localStorage.getItem('authUserRole');
-    const token = localStorage.getItem('token');
+    const _id = localStorage.getItem('_id');
+    const username = localStorage.getItem('username');
+    const role = localStorage.getItem('role') as UserRole;
+    const accessToken = localStorage.getItem('accessToken');
     const expirationDate = Number(localStorage.getItem('expirationDate'));
 
-    if (token && expirationDate && authUserId && authUserRole) {
+    if (_id && username && role && accessToken && expirationDate) {
       const now = new Date();
-      const nowAsNumber = +now;
-      const expirationDateAsNumber = +new Date(expirationDate);
+      const convertedExpirationDate = +new Date(expirationDate);
       const expiresIn = new Date(expirationDate).getTime() - now.getTime();
-      if (expirationDateAsNumber <= nowAsNumber) {
+      if (convertedExpirationDate <= +now) {
         // если срок токена истек, то логаут
         dispatch(authLogout());
-      } else if (nowAsNumber > expirationDateAsNumber - expiresIn / 2) {
+      } else if (+now > convertedExpirationDate - expiresIn / 2) {
         // если срок токена не истек, но осталось меньше половины от срока, то рефрешим
         dispatch(authRefresh());
       } else {
-        // тут ругается на то, что role может быть строкой, а функция принимает UserRole
-        // не знаю как это исправить, поэтому игнор
-        // @ts-ignore
-        dispatch(authSuccess(token, authUserId, authUserRole, authUsername));
-        dispatch(checkAuthTimeout(expiresIn));
+        dispatch(authSuccess({ _id, username, role, accessToken, expiresIn }));
+        dispatch(setRefreshTimeout(expiresIn));
         dispatch(showInfoNotifier(strings.info.auth));
       }
     } else {

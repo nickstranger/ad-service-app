@@ -46,9 +46,8 @@ export const UserFormComponent: FC<Props> = ({
 }) => {
   const classes = useUserStyles();
 
-  const isAdmin = authUser.authUserRole === UserRole.ADMIN;
-  const formEnabled =
-    isAdmin || (authUser.authUserRole === UserRole.USER && userId === authUser.authUserId);
+  const isAdmin = authUser.role === UserRole.ADMIN;
+  const formEnabled = isAdmin || userId === authUser._id;
 
   const isCreateFormVariant = variant === UserComponentVariant.CREATE;
   const isUpdateFormVariant = variant === UserComponentVariant.UPDATE;

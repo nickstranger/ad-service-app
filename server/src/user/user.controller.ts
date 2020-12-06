@@ -48,7 +48,6 @@ export class UserController {
   }
 
   @Patch('/:id')
-  @Roles(UserRole.ADMIN, UserRole.USER)
   @UsePipes(ValidationUpdatePipe)
   async updateUser(
     @Param('id', ParseObjectIdPipe) id: string,

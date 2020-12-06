@@ -21,7 +21,7 @@ export const PrivateRoute: FC<PrivateRouteProps> = ({ children, roles, ...rest }
       {...rest}
       render={({ location }) => {
         // если не залогинен
-        if (!authUser.token) {
+        if (!authUser.accessToken) {
           return (
             <Redirect
               to={{
@@ -33,7 +33,7 @@ export const PrivateRoute: FC<PrivateRouteProps> = ({ children, roles, ...rest }
         }
 
         // если залогинен, но роль не подходит
-        if (!authUser.authUserRole || (roles && !roles.includes(authUser.authUserRole))) {
+        if (roles && !roles.includes(authUser.role)) {
           dispatch(showErrorNotifier(strings.error.forbiddenRole));
           return <Redirect to="/" />;
         }

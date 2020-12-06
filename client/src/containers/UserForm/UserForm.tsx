@@ -16,21 +16,21 @@ import { UserFormValues, UserComponentVariant } from './UserForm.types';
 import { UserFormComponent } from './UserForm.component';
 import { Loader } from 'components/Loader/Loader';
 
-const mapUserToFormValues = (user: User, prevState: UserFormValues): UserFormValues => {
+const mapUserToFormValues = (user: User): UserFormValues => {
   return {
     username: user.username,
     email: user.email,
     role: user.role,
     status: user.status,
-    password: prevState.password,
-    repeat_password: prevState.repeat_password
+    password: '',
+    repeat_password: ''
   };
 };
 
 const initialValues: UserFormValues = {
   username: '',
   email: '',
-  role: UserRole.READER,
+  role: UserRole.USER,
   status: UserStatus.ENABLED,
   password: '',
   repeat_password: ''
@@ -56,9 +56,9 @@ export const UserForm: FC<Props> = ({ variant }) => {
       const fetchUser = async () => {
         try {
           dispatch(pageLoadingStart());
-          const response = await axiosInstance.get(`/users/${id}`);
+          const response = await axiosInstance.get<User>(`/users/${id}`);
           const { data } = response;
-          setUser((prevState) => mapUserToFormValues(data, prevState));
+          setUser(mapUserToFormValues(data));
         } catch (error) {
           dispatch(showErrorNotifier(strings.error.getUser, error));
         } finally {
@@ -105,10 +105,10 @@ export const UserForm: FC<Props> = ({ variant }) => {
     setErrors: Function
   ) => {
     try {
-      const response = await axiosInstance.patch(`/users/${id}`, values);
+      const response = await axiosInstance.patch<User>(`/users/${id}`, values);
       const { data } = response;
       setSubmitting(false);
-      setUser((prevState) => mapUserToFormValues(data, prevState));
+      setUser(mapUserToFormValues(data));
       dispatch(showInfoNotifier(strings.info.updateUser));
     } catch (error) {
       setSubmitting(false);

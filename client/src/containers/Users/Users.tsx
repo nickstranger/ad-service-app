@@ -136,13 +136,12 @@ export const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const loading = useSelector((state: RootState) => state.page.loading);
   const authUser = useSelector((state: RootState) => state.auth);
-  const canModify = authUser.authUserRole === UserRole.ADMIN;
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         dispatch(pageLoadingStart());
-        const response = await axiosInstance.get('/users');
+        const response = await axiosInstance.get<User[]>('/users');
         const { data } = response;
         setUsers(data);
       } catch (error) {
@@ -155,6 +154,7 @@ export const Users = () => {
     fetchUsers();
   }, [dispatch]);
 
+  const canModify = authUser.role === UserRole.ADMIN;
   const addActionProps = canModify
     ? {
         handleAddClick: () => {

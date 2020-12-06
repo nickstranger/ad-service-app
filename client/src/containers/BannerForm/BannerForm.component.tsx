@@ -45,8 +45,7 @@ export const BannerFormComponent: FC<Props> = ({
 }) => {
   const classes = useBannerFormStyles();
 
-  const formEnabled =
-    authUser.authUserRole === UserRole.ADMIN || authUser.authUserRole === UserRole.USER;
+  const formEnabled = authUser.role === UserRole.ADMIN || authUser.role === UserRole.USER;
 
   const isCreateFormVariant = variant === BannerComponentVariant.CREATE;
   const isUpdateFormVariant = variant === BannerComponentVariant.UPDATE;

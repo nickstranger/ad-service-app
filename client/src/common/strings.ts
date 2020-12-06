@@ -37,6 +37,6 @@ export const strings = {
     disable: 'Неактивный',
     admin: 'Администратор',
     user: 'Пользователь',
-    reader: 'Только для просмотра'
+    guest: 'Гость'
   }
 };

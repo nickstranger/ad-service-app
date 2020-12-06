@@ -1,31 +1,28 @@
+import { UserRole } from 'entities/User';
 import { AuthActionTypes, AuthState, AuthSuccessAction } from './auth.types';
 import * as actionTypes from './auth.action-types';
 
 const initialState: AuthState = {
-  authUserId: null,
-  authUsername: null,
-  authUserRole: null,
-  token: null,
+  _id: '',
+  username: '',
+  role: UserRole.GUEST,
+  accessToken: '',
+  expiresIn: 0,
   authStateChecked: false
 };
 
 const authSuccess = (state: AuthState, action: AuthSuccessAction): AuthState => {
   return {
     ...state,
-    authUserId: action.payload.authUserId,
-    authUsername: action.payload.authUsername,
-    authUserRole: action.payload.authUserRole,
-    token: action.payload.token
+    ...action.payload
   };
 };
 
 const authLogout = (state: AuthState): AuthState => {
   return {
     ...state,
-    authUserId: null,
-    authUsername: null,
-    authUserRole: null,
-    token: null
+    ...initialState,
+    authStateChecked: true
   };
 };
 

@@ -103,11 +103,11 @@ export class UserService {
     const previousUser = JSON.parse(JSON.stringify(user));
     const { username, password, email, role, status } = userDto;
 
-    // дополнительно проверяем авторизацию действия для роли USER
-    const roleIsUser = userFromRequest.role === UserRole.USER;
-    const isSameUser = userFromRequest._id.toString() === user._id.toString();
-    if (roleIsUser) {
+    const isAdmin = userFromRequest.role === UserRole.ADMIN;
+    // дополнительно проверяем авторизацию действия для роли НЕ_АДМИН
+    if (!isAdmin) {
       // редактирует ли он не себя самого
+      const isSameUser = userFromRequest._id.toString() === user._id.toString();
       if (!isSameUser) {
         throw new UnauthorizedException();
       }

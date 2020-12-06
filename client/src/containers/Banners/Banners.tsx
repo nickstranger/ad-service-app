@@ -148,14 +148,12 @@ export const Banners = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const loading = useSelector((state: RootState) => state.page.loading);
   const authUser = useSelector((state: RootState) => state.auth);
-  const canModify =
-    authUser.authUserRole === UserRole.ADMIN || authUser.authUserRole === UserRole.USER;
 
   useEffect(() => {
     const fetchBanners = async () => {
       try {
         dispatch(pageLoadingStart());
-        const response = await axiosInstance.get('/banners');
+        const response = await axiosInstance.get<Banner[]>('/banners');
         const { data } = response;
         setBanners(data);
       } catch (error) {
@@ -168,6 +166,7 @@ export const Banners = () => {
     fetchBanners();
   }, [dispatch]);
 
+  const canModify = authUser.role === UserRole.ADMIN || authUser.role === UserRole.USER;
   const addActionProps = canModify
     ? {
         handleAddClick: () => {

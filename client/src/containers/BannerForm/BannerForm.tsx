@@ -68,7 +68,7 @@ export const BannerForm: FC<Props> = ({ variant }) => {
       const fetchBanner = async () => {
         try {
           dispatch(pageLoadingStart());
-          const response = await axiosInstance.get(`/banners/${id}`);
+          const response = await axiosInstance.get<Banner>(`/banners/${id}`);
           const { data } = response;
           setBanner(mapBannerToFormValues(data));
         } catch (error) {
@@ -152,7 +152,7 @@ export const BannerForm: FC<Props> = ({ variant }) => {
   ) => {
     try {
       const preparedData = prepareData({ ...values });
-      const response = await axiosInstance.patch(`/banners/${id}`, preparedData);
+      const response = await axiosInstance.patch<Banner>(`/banners/${id}`, preparedData);
       const { data } = response;
       setSubmitting(false);
       setBanner(mapBannerToFormValues(data));

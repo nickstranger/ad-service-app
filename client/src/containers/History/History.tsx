@@ -65,7 +65,7 @@ const getColumns = (documentType: HistoryDocumentType): MUIDataTableColumnDef[] 
     name: HistoryColumns.NAME,
     options: {
       // customFilterListOptions: { render: (v: any) => `${HistoryColumns.NAME}: ${v}` }
-      customBodyRender: (value, tableMeta, updateValue) => {
+      customBodyRender: (value, tableMeta, _updateValue) => {
         return (
           <Link component={RouterLink} to={`/${documentType}s/${tableMeta.rowData[1]}`}>
             {value}
@@ -78,7 +78,7 @@ const getColumns = (documentType: HistoryDocumentType): MUIDataTableColumnDef[] 
     name: HistoryColumns.CHANGER,
     options: {
       // customFilterListOptions: { render: (v: any) => `${HistoryColumns.CHANGER}: ${v}` }
-      customBodyRender: (value, tableMeta, updateValue) => {
+      customBodyRender: (value, tableMeta, _updateValue) => {
         return (
           <Link component={RouterLink} to={`/users/${tableMeta.rowData[2]}`}>
             {value}
@@ -139,7 +139,7 @@ export const History: FC<Props> = ({ tableTitle, documentType }) => {
     const fetchHistory = async () => {
       try {
         dispatch(pageLoadingStart());
-        const response = await axiosInstance.get(
+        const response = await axiosInstance.get<{ history: HistoryEntity[]; totalCount: number }>(
           `/history?documentType=${documentType}&offset=${
             pageNumber * rowsPerPage
           }&limit=${rowsPerPage}`
