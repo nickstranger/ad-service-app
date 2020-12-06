@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useHistory } from 'react-router-dom';
-import { MUIDataTableColumnDef } from 'mui-datatables';
+import { MUIDataTableColumn } from 'mui-datatables';
 import Tooltip from '@material-ui/core/Tooltip/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -19,17 +19,9 @@ import { Status } from 'components/Status/Status';
 import { Role } from 'components/Role/Role';
 import { Loader } from 'components/Loader/Loader';
 
-enum UserColumns {
-  ID = 'ID',
-  STATUS = 'Статус',
-  LOGIN = 'Логин',
-  EMAIL = 'Email',
-  ROLE = 'Роль'
-}
-
-const columns: MUIDataTableColumnDef[] = [
+const columns: MUIDataTableColumn[] = [
   {
-    name: UserColumns.ID,
+    name: '_id',
     options: {
       filter: false,
       searchable: false,
@@ -37,15 +29,14 @@ const columns: MUIDataTableColumnDef[] = [
     }
   },
   {
-    name: UserColumns.STATUS,
+    name: 'status',
+    label: 'Статус',
     options: {
       searchable: false,
       filterType: 'dropdown',
       customFilterListOptions: {
-        render: (v: any) =>
-          `${UserColumns.STATUS}: ${
-            v === UserStatus.ENABLED ? strings.text.enable : strings.text.disable
-          }`
+        render: (v) =>
+          `Статус: ${v === UserStatus.ENABLED ? strings.text.enable : strings.text.disable}`
       },
       filterOptions: {
         renderValue: (value) =>
@@ -55,26 +46,29 @@ const columns: MUIDataTableColumnDef[] = [
     }
   },
   {
-    name: UserColumns.LOGIN,
+    name: 'username',
+    label: 'Имя',
     options: {
-      customFilterListOptions: { render: (v: any) => `${UserColumns.LOGIN}: ${v}` }
+      customFilterListOptions: { render: (v) => `Имя: ${v}` }
     }
   },
   {
-    name: UserColumns.EMAIL,
+    name: 'email',
+    label: 'Email',
     options: {
-      customFilterListOptions: { render: (v: any) => `${UserColumns.EMAIL}: ${v}` }
+      customFilterListOptions: { render: (v) => `Email: ${v}` }
     }
   },
   {
-    name: UserColumns.ROLE,
+    name: 'role',
+    label: 'Роль',
     options: {
       searchable: false,
       filterType: 'dropdown',
       customFilterListOptions: {
-        render: (value: any) => {
+        render: (value) => {
           const role = getRoleByString(value);
-          return `${UserColumns.ROLE}: ${role ? role[1] : value}`;
+          return `Роль: ${role ? role[1] : value}`;
         }
       },
       filterOptions: {
@@ -123,13 +117,6 @@ const columns: MUIDataTableColumnDef[] = [
   }
 ];
 
-const mapDataToTableData = (data: User[]) => {
-  return data.map((item: User) => {
-    // Важно, поля должны добавляться в той же последовательности, что перечислены в columns
-    return [item._id, item.status, item.username, item.email, item.role];
-  });
-};
-
 export const Users = () => {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -167,11 +154,6 @@ export const Users = () => {
   return loading ? (
     <Loader />
   ) : (
-    <Table
-      title={routes.users.name}
-      data={mapDataToTableData(users)}
-      columns={columns}
-      {...addActionProps}
-    />
+    <Table title={routes.users.name} data={users} columns={columns} {...addActionProps} />
   );
 };
