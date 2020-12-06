@@ -57,7 +57,6 @@ export const auth = (
   username: string,
   password: string,
   setSubmitting: (isSubmitting: boolean) => void,
-  setErrors: (errors: any) => void,
   backToPrevRoute: () => void
 ) => {
   return async (dispatch: any) => {
@@ -78,9 +77,6 @@ export const auth = (
     } catch (error) {
       setSubmitting(false);
       dispatch(showErrorNotifier(strings.error.auth, error));
-      if (error.response?.data?.message) {
-        setErrors(error.response.data.message);
-      }
     }
   };
 };
