@@ -9,23 +9,19 @@ import { RootState } from 'store/store';
 
 export const Account = () => {
   const classes = useAccountStyles();
-  const { authUserId, authUsername, authUserRole } = useSelector((state: RootState) => state.auth);
+  const { _id, username, role } = useSelector((state: RootState) => state.auth);
 
-  let content = null;
-  if (authUsername && authUserRole) {
-    const [Icon, text] = getRenderParamsByUserRole(authUserRole);
-    content = (
-      <Link to={`${routes.users.path}/${authUserId}`} className={classes.root}>
-        <Avatar className={classes.avatar}>
-          <Icon />
-        </Avatar>
-        <div className={classes.info}>
-          <div className={classes.username}>{authUsername}</div>
-          <div className={classes.role}>{text}</div>
-        </div>
-      </Link>
-    );
-  }
+  const [Icon, text] = getRenderParamsByUserRole(role);
 
-  return content;
+  return (
+    <Link to={`${routes.users.path}/${_id}`} className={classes.root}>
+      <Avatar className={classes.avatar}>
+        <Icon />
+      </Avatar>
+      <div className={classes.info}>
+        <div className={classes.username}>{username}</div>
+        <div className={classes.role}>{text}</div>
+      </div>
+    </Link>
+  );
 };

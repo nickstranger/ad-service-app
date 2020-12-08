@@ -1,1 +1,1 @@
-export { HistoryDocumentType } from './HistoryDocumentType';
+export { HistoryDocumentType } from './history-document-type.enum';

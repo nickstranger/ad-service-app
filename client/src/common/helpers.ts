@@ -12,8 +12,8 @@ export const getRenderParamsByUserRole = (role: UserRole): [typeof SvgIcon, stri
       return [StarIcon, strings.text.admin];
     case UserRole.USER:
       return [PersonIcon, strings.text.user];
-    case UserRole.READER:
-      return [MenuBookIcon, strings.text.reader];
+    case UserRole.GUEST:
+      return [MenuBookIcon, strings.text.guest];
   }
 };
 
@@ -23,8 +23,8 @@ export const getRoleByString = (string: string): [UserRole, string] | null => {
       return [UserRole.ADMIN, strings.text.admin];
     case UserRole.USER:
       return [UserRole.USER, strings.text.user];
-    case UserRole.READER:
-      return [UserRole.READER, strings.text.reader];
+    case UserRole.GUEST:
+      return [UserRole.GUEST, strings.text.guest];
     default:
       return null;
   }

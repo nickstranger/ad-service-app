@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables';
+import { MUIDataTableColumn, MUIDataTableOptions } from 'mui-datatables';
 import { diff as DiffEditor } from 'react-ace';
 import { DateTime } from 'luxon';
 import { Link as RouterLink } from 'react-router-dom';
@@ -9,63 +8,39 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 
 import './codeMarker.css';
-import { axiosInstance } from 'common/axios-instance';
-import { strings } from 'common/strings';
+import { useFetch } from 'hooks';
 import { HistoryDocumentType, HistoryEntity } from 'entities/HistoryEntity';
-import { RootState } from 'store/store';
-import { pageLoadingEnd, pageLoadingStart } from 'store/page/page.actions';
-import { showErrorNotifier } from 'store/notifier/notifier.actions';
 import { Table } from 'components/Table/Table';
 import { Loader } from 'components/Loader/Loader';
 
-// TODO может быть лучше везде переделать на кортеж вместо енама
-enum HistoryColumns {
-  ID = 'ID',
-  ID_ENTITY = 'ID Entity',
-  ID_CHANGER = 'ID Changer',
-  DATE = 'Дата изменения',
-  NAME = 'Название объекта изменения',
-  CHANGER = 'Автор изменения',
-  PREVIOUS_VALUE = 'Предыдущее значение',
-  CURRENT_VALUE = 'Обновленное значение'
-}
-
-const getColumns = (documentType: HistoryDocumentType): MUIDataTableColumnDef[] => [
+const getColumns = (documentType: HistoryDocumentType): MUIDataTableColumn[] => [
   {
-    name: HistoryColumns.ID,
+    name: '_id',
     options: {
-      // filter: false,
-      // searchable: false,
       display: 'excluded'
     }
   },
   {
-    name: HistoryColumns.ID_ENTITY,
+    name: 'document_id',
     options: {
-      // filter: false,
-      // searchable: false,
       display: 'excluded'
     }
   },
   {
-    name: HistoryColumns.ID_CHANGER,
+    name: 'changer_id',
     options: {
-      // filter: false,
-      // searchable: false,
       display: 'excluded'
     }
   },
   {
-    name: HistoryColumns.DATE,
-    options: {
-      // customFilterListOptions: { render: (v: any) => `${HistoryColumns.DATE}: ${v}` }
-    }
+    name: 'changed_at',
+    label: 'Дата изменения'
   },
   {
-    name: HistoryColumns.NAME,
+    name: 'name',
+    label: 'Название',
     options: {
-      // customFilterListOptions: { render: (v: any) => `${HistoryColumns.NAME}: ${v}` }
-      customBodyRender: (value, tableMeta, updateValue) => {
+      customBodyRender: (value, tableMeta, _updateValue) => {
         return (
           <Link component={RouterLink} to={`/${documentType}s/${tableMeta.rowData[1]}`}>
             {value}
@@ -75,10 +50,10 @@ const getColumns = (documentType: HistoryDocumentType): MUIDataTableColumnDef[] 
     }
   },
   {
-    name: HistoryColumns.CHANGER,
+    name: 'changer_username',
+    label: 'Автор изменения',
     options: {
-      // customFilterListOptions: { render: (v: any) => `${HistoryColumns.CHANGER}: ${v}` }
-      customBodyRender: (value, tableMeta, updateValue) => {
+      customBodyRender: (value, tableMeta, _updateValue) => {
         return (
           <Link component={RouterLink} to={`/users/${tableMeta.rowData[2]}`}>
             {value}
@@ -88,37 +63,32 @@ const getColumns = (documentType: HistoryDocumentType): MUIDataTableColumnDef[] 
     }
   },
   {
-    name: HistoryColumns.PREVIOUS_VALUE,
+    name: 'previous_value',
     options: {
       display: 'excluded'
-      // customFilterListOptions: { render: (v: any) => `${HistoryColumns.PREVIOUS_VALUE}: ${v}` }
     }
   },
   {
-    name: HistoryColumns.CURRENT_VALUE,
+    name: 'current_value',
     options: {
       display: 'excluded'
-      // customFilterListOptions: { render: (v: any) => `${HistoryColumns.CURRENT_VALUE}: ${v}` }
     }
   }
 ];
 
-const mapDataToTableData = (data: HistoryEntity[]) => {
-  return data.map((item: HistoryEntity) => {
-    // Важно, поля должны добавляться в той же последовательности, что перечислены в columns
-    return [
-      item._id,
-      item.document_id,
-      item.changer_id,
-      DateTime.fromISO(item.changed_at).toLocaleString(DateTime.DATETIME_MED),
-      item.current_value?.name ||
-        item.previous_value?.name ||
-        item.current_value?.username ||
-        item.previous_value?.username,
-      item.changer_username,
-      JSON.stringify(item.previous_value, null, 2),
-      JSON.stringify(item.current_value, null, 2)
-    ];
+const transformDataForRender = (histories: HistoryEntity[]) => {
+  return histories.map((history: HistoryEntity) => {
+    return {
+      ...history,
+      changed_at: DateTime.fromISO(history.changed_at).toLocaleString(DateTime.DATETIME_MED),
+      name:
+        history.current_value?.name ||
+        history.previous_value?.name ||
+        history.current_value?.username ||
+        history.previous_value?.username,
+      previous_value: JSON.stringify(history.previous_value, null, 2),
+      current_value: JSON.stringify(history.current_value, null, 2)
+    };
   });
 };
 
@@ -128,34 +98,29 @@ interface Props {
 }
 
 export const History: FC<Props> = ({ tableTitle, documentType }) => {
-  const dispatch = useDispatch();
   const [historyList, setHistoryList] = useState<HistoryEntity[]>([]);
   const [totalNumberRows, setTotalNumberRows] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(20);
-  const loading = useSelector((state: RootState) => state.page.loading);
+
+  const url = `/history?documentType=${documentType}&offset=${
+    pageNumber * rowsPerPage
+  }&limit=${rowsPerPage}`;
+  const { data, isLoading } = useFetch<{ history: HistoryEntity[]; totalCount: number }>(
+    url,
+    { method: 'GET' },
+    {
+      onFailMessage: 'Ошибка загрузки списка изменений'
+    }
+  );
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        dispatch(pageLoadingStart());
-        const response = await axiosInstance.get(
-          `/history?documentType=${documentType}&offset=${
-            pageNumber * rowsPerPage
-          }&limit=${rowsPerPage}`
-        );
-        const { history, totalCount } = response.data;
-        setHistoryList(history);
-        setTotalNumberRows(totalCount);
-      } catch (error) {
-        dispatch(showErrorNotifier(strings.error.getHistory, error));
-      } finally {
-        dispatch(pageLoadingEnd());
-      }
-    };
-
-    fetchHistory();
-  }, [documentType, pageNumber, rowsPerPage, dispatch]);
+    if (data) {
+      const { history, totalCount } = data;
+      setHistoryList(history);
+      setTotalNumberRows(totalCount);
+    }
+  }, [data]);
 
   const options: MUIDataTableOptions = {
     // TODO search, filter и sort пока выключены, т.к. нужно реализовать на бекенде
@@ -175,10 +140,10 @@ export const History: FC<Props> = ({ tableTitle, documentType }) => {
         <>
           <TableRow>
             <TableCell variant="head" colSpan={2}>
-              {HistoryColumns.PREVIOUS_VALUE}
+              Предыдущее значение
             </TableCell>
             <TableCell variant="head" colSpan={2} align="right">
-              {HistoryColumns.CURRENT_VALUE}
+              Обновленное значение
             </TableCell>
           </TableRow>
           <TableRow>
@@ -201,12 +166,12 @@ export const History: FC<Props> = ({ tableTitle, documentType }) => {
     }
   };
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
     <Table
       title={tableTitle}
-      data={mapDataToTableData(historyList)}
+      data={transformDataForRender(historyList)}
       columns={getColumns(documentType)}
       options={options}
     />

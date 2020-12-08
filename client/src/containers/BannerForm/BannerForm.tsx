@@ -4,18 +4,18 @@ import { useHistory, useParams } from 'react-router-dom';
 import { validateYupSchema, yupToFormErrors, FormikHelpers } from 'formik';
 import sanitizeHtml from 'sanitize-html';
 
-import { RootState } from 'store/store';
-import { pageLoadingEnd, pageLoadingStart } from 'store/page/page.actions';
-import { showErrorNotifier, showInfoNotifier } from 'store/notifier/notifier.actions';
 import { axiosInstance } from 'common/axios-instance';
 import { routes } from 'common/constants';
 import { strings } from 'common/strings';
 import { filterEmptyObjectValues } from 'common/utils';
+import { useFetch } from 'hooks';
+import { RootState } from 'store/store';
+import { Banner, BannerStatus } from 'entities/Banner';
+import { showErrorNotifier, showInfoNotifier } from 'store/notifier/notifier.actions';
+import { Loader } from 'components/Loader/Loader';
 import { bannerFormSchema, isJsonValid } from './BannerForm.schema';
 import { BannerFormComponent } from './BannerForm.component';
-import { Banner, BannerStatus } from 'entities/Banner';
 import { BannerFormValues, BannerComponentVariant } from './BannerForm.types';
-import { Loader } from 'components/Loader/Loader';
 
 interface Props {
   variant: BannerComponentVariant;
@@ -56,31 +56,26 @@ export const BannerForm: FC<Props> = ({ variant }) => {
   const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
-  const loading = useSelector((state: RootState) => state.page.loading);
   const authUser = useSelector((state: RootState) => state.auth);
 
   const [banner, setBanner] = useState(initialValues);
   const [isDeletingStarted, setIsDeletingStarted] = useState(false);
 
+  const { data, isLoading } = useFetch<Banner | null>(
+    `/banners/${id}`,
+    { method: 'GET' },
+    {
+      onFailMessage: 'Ошибка загрузки баннера',
+      shouldExecute: variant === BannerComponentVariant.UPDATE
+    }
+  );
+
   // запрашиваем баннер только если форма в режиме редактирования баннера
   useEffect(() => {
-    if (variant === BannerComponentVariant.UPDATE) {
-      const fetchBanner = async () => {
-        try {
-          dispatch(pageLoadingStart());
-          const response = await axiosInstance.get(`/banners/${id}`);
-          const { data } = response;
-          setBanner(mapBannerToFormValues(data));
-        } catch (error) {
-          dispatch(showErrorNotifier(strings.error.getBanner, error));
-        } finally {
-          dispatch(pageLoadingEnd());
-        }
-      };
-
-      fetchBanner();
+    if (variant === BannerComponentVariant.UPDATE && data) {
+      setBanner(mapBannerToFormValues(data));
     }
-  }, [dispatch, id, variant]);
+  }, [data, variant]);
 
   const validateOnChange = async (values: BannerFormValues) => {
     try {
@@ -135,10 +130,10 @@ export const BannerForm: FC<Props> = ({ variant }) => {
       const preparedData = prepareData(values);
       await axiosInstance.post(`/banners`, preparedData);
       history.push(routes.banners.path);
-      dispatch(showInfoNotifier(strings.info.createBanner));
+      dispatch(showInfoNotifier('Баннер успешно создан'));
     } catch (error) {
       setSubmitting(false);
-      dispatch(showErrorNotifier(strings.error.createBanner, error));
+      dispatch(showErrorNotifier('Ошибка создания баннера', error));
       if (error.response?.data?.message) {
         setErrors(error.response.data.message);
       }
@@ -152,14 +147,14 @@ export const BannerForm: FC<Props> = ({ variant }) => {
   ) => {
     try {
       const preparedData = prepareData({ ...values });
-      const response = await axiosInstance.patch(`/banners/${id}`, preparedData);
+      const response = await axiosInstance.patch<Banner>(`/banners/${id}`, preparedData);
       const { data } = response;
       setSubmitting(false);
       setBanner(mapBannerToFormValues(data));
-      dispatch(showInfoNotifier(strings.info.updateBanner));
+      dispatch(showInfoNotifier('Баннер успешно обновлен'));
     } catch (error) {
       setSubmitting(false);
-      dispatch(showErrorNotifier(strings.error.updateBanner, error));
+      dispatch(showErrorNotifier('Ошибка обновления баннера', error));
       if (error.response?.data?.message) {
         setErrors(error.response.data.message);
       }
@@ -178,9 +173,9 @@ export const BannerForm: FC<Props> = ({ variant }) => {
     try {
       await axiosInstance.delete(`/banners/${id}`);
       history.push(routes.banners.path);
-      dispatch(showInfoNotifier(strings.info.deleteBanner));
+      dispatch(showInfoNotifier('Баннер успешно удален'));
     } catch (error) {
-      dispatch(showErrorNotifier(strings.error.deleteBanner, error));
+      dispatch(showErrorNotifier('Ошибка удаления баннера', error));
     }
   };
 
@@ -205,7 +200,7 @@ export const BannerForm: FC<Props> = ({ variant }) => {
     }
   };
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
     <BannerFormComponent

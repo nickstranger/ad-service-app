@@ -14,6 +14,19 @@ import { Users } from 'containers/Users/Users';
 import { UserForm } from 'containers/UserForm/UserForm';
 import { History } from 'containers/History/History';
 
+// WARNING!
+//
+// На некоторых компонентах проставлен проперти key.
+// Это сделано для того, чтобы принудительно сбрасывать стейт функционального компонента.
+//
+// Например, компонент History с разными пропертями используется в двух роутах. При переходе между этими двумя роутами стейт
+// остается прежним из-за внутренней оптимизации React.
+// Может получиться конфуз, если при переходе по роуту данные в таблице остались старыми (если, например, проблемы с сетью).
+//
+// Есть два способа решить проблему: установка key и принудительный сброс стейта внутри компонента в useEffect хуке.
+// Выбран первый вариант, т.к. в этом случае не нужно задумываться на тем, сбросил ли я все стейты.
+// Может влиять на производительность, но в данном случае, ввиду малого размера приложения, решил пренебречь.
+
 export const Routes = () => {
   return (
     <Switch>
@@ -27,31 +40,33 @@ export const Routes = () => {
         <Banners />
       </PrivateRoute>
       <PrivateRoute path={routes.createBanner.path} roles={[UserRole.ADMIN, UserRole.USER]} exact>
-        <BannerForm variant={BannerComponentVariant.CREATE} />
+        <BannerForm variant={BannerComponentVariant.CREATE} key={BannerComponentVariant.CREATE} />
       </PrivateRoute>
       <PrivateRoute path={routes.bannersHistory.path}>
         <History
           tableTitle={`${routes.bannersHistory.name} баннеров`}
           documentType={HistoryDocumentType.BANNER}
+          key={HistoryDocumentType.BANNER}
         />
       </PrivateRoute>
       <PrivateRoute path={routes.banner.path}>
-        <BannerForm variant={BannerComponentVariant.UPDATE} />
+        <BannerForm variant={BannerComponentVariant.UPDATE} key={BannerComponentVariant.UPDATE} />
       </PrivateRoute>
       <PrivateRoute path={routes.users.path} exact>
         <Users />
       </PrivateRoute>
       <PrivateRoute path={routes.createUser.path} roles={[UserRole.ADMIN]}>
-        <UserForm variant={UserComponentVariant.CREATE} />
+        <UserForm variant={UserComponentVariant.CREATE} key={UserComponentVariant.CREATE} />
       </PrivateRoute>
       <PrivateRoute path={routes.usersHistory.path}>
         <History
           tableTitle={`${routes.bannersHistory.name} пользователей`}
           documentType={HistoryDocumentType.USER}
+          key={HistoryDocumentType.USER}
         />
       </PrivateRoute>
       <PrivateRoute path={routes.user.path}>
-        <UserForm variant={UserComponentVariant.UPDATE} />
+        <UserForm variant={UserComponentVariant.UPDATE} key={UserComponentVariant.UPDATE} />
       </PrivateRoute>
       <Redirect to={routes.banners.path} />
     </Switch>

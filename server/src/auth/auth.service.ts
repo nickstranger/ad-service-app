@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from 'user/user.service';
 import { User } from 'user/schema';
 import { CryptoService } from 'crypto/crypto.service';
-import { Token } from './interfaces';
+import { AuthResponse } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -32,24 +32,18 @@ export class AuthService {
     return user;
   }
 
-  async login(user: User): Promise<Token> {
-    const payload = {
-      _id: user._id,
-      username: user.username,
-      role: user.role,
-      status: user.status,
-      password: user.password
-    };
+  async login(user: User): Promise<AuthResponse> {
+    const { _id, username, role, status, password } = user;
     return {
-      accessToken: this.jwtService.sign(payload),
-      expiresIn: this.configService.get<number>('jwtExpiration'),
-      id: user._id,
-      username: user.username,
-      role: user.role
+      _id,
+      username,
+      role,
+      accessToken: this.jwtService.sign({ _id, username, role, status, password }),
+      expiresIn: this.configService.get<number>('jwtExpiration')
     };
   }
 
-  async refreshToken(previousToken: string): Promise<Token> {
+  async refreshToken(previousToken: string): Promise<AuthResponse> {
     const previousTokenPure = previousToken.replace('Bearer ', '');
     const decodedToken = this.jwtService.decode(previousTokenPure);
     if (typeof decodedToken !== 'object') {
@@ -60,11 +54,11 @@ export class AuthService {
       delete decodedToken.exp;
 
       return {
-        accessToken: this.jwtService.sign(decodedToken),
-        expiresIn: this.configService.get<number>('jwtExpiration'),
-        id: decodedToken._id,
+        _id: decodedToken._id,
         username: decodedToken.username,
-        role: decodedToken.role
+        role: decodedToken.role,
+        accessToken: this.jwtService.sign(decodedToken),
+        expiresIn: this.configService.get<number>('jwtExpiration')
       };
     }
   }
