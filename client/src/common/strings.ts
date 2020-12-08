@@ -4,31 +4,12 @@ export const strings = {
     password: 'Некорректный пароль',
     repeatPassword: 'Пароли не совпадают',
     email: 'Некорректный email',
-    getBanner: 'Ошибка загрузки баннера',
-    getBanners: 'Ошибка загрузки списка баннеров',
-    createBanner: 'Ошибка создания баннера',
-    updateBanner: 'Ошибка обновления баннера',
-    deleteBanner: 'Ошибка удаления баннера',
     invalidJson: 'Json невалиден',
     invalidBannerData: 'Конфиг невалиден',
-    invalidBannerLayout: 'Верстка баннера невалидна',
-    getUser: 'Ошибка загрузки пользователя',
-    getUsers: 'Ошибка загрузки списка пользователей',
-    createUser: 'Ошибка создания пользователя',
-    updateUser: 'Ошибка обновления пользователя',
-    deleteUser: 'Ошибка удаления пользователя',
-    auth: 'Ошибка авторизации',
-    forbiddenRole: 'Запрещено для текущей роли',
-    getHistory: 'Ошибка загрузки списка изменений'
+    invalidBannerLayout: 'Верстка баннера невалидна'
   },
   info: {
-    auth: 'Вы успешно авторизованы',
-    createBanner: 'Баннер успешно создан',
-    updateBanner: 'Баннер успешно обновлен',
-    deleteBanner: 'Баннер успешно удален',
-    createUser: 'Пользователь успешно создан',
-    updateUser: 'Пользователь успешно обновлен',
-    deleteUser: 'Пользователь успешно удален'
+    auth: 'Вы успешно авторизованы'
   },
   text: {
     password:

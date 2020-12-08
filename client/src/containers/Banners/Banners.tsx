@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { MUIDataTableColumn, MUIDataTableOptions } from 'mui-datatables';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
@@ -9,14 +8,12 @@ import IconButton from '@material-ui/core/IconButton';
 import SettingsIcon from '@material-ui/icons/Settings';
 
 import { useBannersStyles } from './Banners.styles';
-import { axiosInstance } from 'common/axios-instance';
 import { routes } from 'common/constants';
 import { strings } from 'common/strings';
+import { useFetch } from 'hooks';
 import { Banner, BannerStatus } from 'entities/Banner';
 import { UserRole } from 'entities/User';
 import { RootState } from 'store/store';
-import { pageLoadingEnd, pageLoadingStart } from 'store/page/page.actions';
-import { showErrorNotifier } from 'store/notifier/notifier.actions';
 import { Table } from 'components/Table/Table';
 import { Status } from 'components/Status/Status';
 import { CodeEditor } from 'components/CodeEditor/CodeEditor';
@@ -122,28 +119,11 @@ const transformDataForRender = (banners: Banner[]) => {
 export const Banners = () => {
   const classes = useBannersStyles();
 
-  const dispatch = useDispatch();
   const history = useHistory();
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const loading = useSelector((state: RootState) => state.page.loading);
+  const { data = [], isLoading } = useFetch<Banner[]>('/banners', { method: 'GET' }, {
+    onFailMessage: 'Ошибка загрузки списка баннеров'
+  });
   const authUser = useSelector((state: RootState) => state.auth);
-
-  useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        dispatch(pageLoadingStart());
-        const response = await axiosInstance.get<Banner[]>('/banners');
-        const { data } = response;
-        setBanners(data);
-      } catch (error) {
-        dispatch(showErrorNotifier(strings.error.getBanners, error));
-      } finally {
-        dispatch(pageLoadingEnd());
-      }
-    };
-
-    fetchBanners();
-  }, [dispatch]);
 
   const canModify = authUser.role === UserRole.ADMIN || authUser.role === UserRole.USER;
   const addActionProps = canModify
@@ -184,12 +164,12 @@ export const Banners = () => {
     }
   };
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
     <Table
       title={routes.banners.name}
-      data={transformDataForRender(banners)}
+      data={transformDataForRender(data)}
       columns={columns}
       options={options}
       {...addActionProps}

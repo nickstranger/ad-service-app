@@ -1,19 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link, useHistory } from 'react-router-dom';
 import { MUIDataTableColumn } from 'mui-datatables';
 import Tooltip from '@material-ui/core/Tooltip/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import SettingsIcon from '@material-ui/icons/Settings';
 
-import { axiosInstance } from 'common/axios-instance';
 import { routes } from 'common/constants';
 import { strings } from 'common/strings';
 import { getRoleByString } from 'common/helpers';
+import { useFetch } from 'hooks';
 import { User, UserRole, UserStatus } from 'entities/User';
 import { RootState } from 'store/store';
-import { pageLoadingEnd, pageLoadingStart } from 'store/page/page.actions';
-import { showErrorNotifier } from 'store/notifier/notifier.actions';
 import { Table } from 'components/Table/Table';
 import { Status } from 'components/Status/Status';
 import { Role } from 'components/Role/Role';
@@ -118,28 +115,11 @@ const columns: MUIDataTableColumn[] = [
 ];
 
 export const Users = () => {
-  const dispatch = useDispatch();
   const history = useHistory();
-  const [users, setUsers] = useState<User[]>([]);
-  const loading = useSelector((state: RootState) => state.page.loading);
+  const { data = [], isLoading } = useFetch<User[]>('/users', { method: 'GET' }, {
+    onFailMessage: 'Ошибка загрузки списка пользователей'
+  });
   const authUser = useSelector((state: RootState) => state.auth);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        dispatch(pageLoadingStart());
-        const response = await axiosInstance.get<User[]>('/users');
-        const { data } = response;
-        setUsers(data);
-      } catch (error) {
-        dispatch(showErrorNotifier(strings.error.getUsers, error));
-      } finally {
-        dispatch(pageLoadingEnd());
-      }
-    };
-
-    fetchUsers();
-  }, [dispatch]);
 
   const canModify = authUser.role === UserRole.ADMIN;
   const addActionProps = canModify
@@ -151,9 +131,9 @@ export const Users = () => {
       }
     : {};
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
-    <Table title={routes.users.name} data={users} columns={columns} {...addActionProps} />
+    <Table title={routes.users.name} data={data} columns={columns} {...addActionProps} />
   );
 };

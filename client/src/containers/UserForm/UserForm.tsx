@@ -3,18 +3,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useParams } from 'react-router-dom';
 import { validateYupSchema, yupToFormErrors, FormikHelpers } from 'formik';
 
-import { User, UserRole, UserStatus } from 'entities/User';
-import { RootState } from 'store/store';
-import { pageLoadingStart, pageLoadingEnd } from 'store/page/page.actions';
-import { showErrorNotifier, showInfoNotifier } from 'store/notifier/notifier.actions';
 import { routes } from 'common/constants';
 import { axiosInstance } from 'common/axios-instance';
-import { strings } from 'common/strings';
 import { filterEmptyObjectValues } from 'common/utils';
+import { useFetch } from 'hooks';
+import { User, UserRole, UserStatus } from 'entities/User';
+import { RootState } from 'store/store';
+import { showErrorNotifier, showInfoNotifier } from 'store/notifier/notifier.actions';
+import { Loader } from 'components/Loader/Loader';
 import { userFormSchema } from './UserForm.schema';
 import { UserFormValues, UserComponentVariant } from './UserForm.types';
 import { UserFormComponent } from './UserForm.component';
-import { Loader } from 'components/Loader/Loader';
 
 const mapUserToFormValues = (user: User): UserFormValues => {
   return {
@@ -44,31 +43,26 @@ export const UserForm: FC<Props> = ({ variant }) => {
   const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
-  const loading = useSelector((state: RootState) => state.page.loading);
   const authUser = useSelector((state: RootState) => state.auth);
 
   const [user, setUser] = useState(initialValues);
   const [isDeletingStarted, setIsDeletingStarted] = useState(false);
 
+  const { data, isLoading } = useFetch<User | undefined>(
+    `/users/${id}`,
+    { method: 'GET' },
+    {
+      onFailMessage: 'Ошибка загрузки пользователя',
+      shouldExecute: variant === UserComponentVariant.UPDATE
+    }
+  );
+
   // запрашиваем юзера только если форма в режиме редактирования юзера
   useEffect(() => {
-    if (variant === UserComponentVariant.UPDATE) {
-      const fetchUser = async () => {
-        try {
-          dispatch(pageLoadingStart());
-          const response = await axiosInstance.get<User>(`/users/${id}`);
-          const { data } = response;
-          setUser(mapUserToFormValues(data));
-        } catch (error) {
-          dispatch(showErrorNotifier(strings.error.getUser, error));
-        } finally {
-          dispatch(pageLoadingEnd());
-        }
-      };
-
-      fetchUser();
+    if (variant === UserComponentVariant.UPDATE && data) {
+      setUser(mapUserToFormValues(data));
     }
-  }, [dispatch, id, variant]);
+  }, [data, variant]);
 
   const validate = async (values: UserFormValues) => {
     try {
@@ -89,10 +83,10 @@ export const UserForm: FC<Props> = ({ variant }) => {
     try {
       await axiosInstance.post(`/users/create`, values);
       history.push(routes.users.path);
-      dispatch(showInfoNotifier(strings.info.createUser));
+      dispatch(showInfoNotifier('Пользователь успешно создан'));
     } catch (error) {
       setSubmitting(false);
-      dispatch(showErrorNotifier(strings.error.createUser, error));
+      dispatch(showErrorNotifier('Ошибка создания пользователя', error));
       if (error.response?.data?.message) {
         setErrors(error.response.data.message);
       }
@@ -109,10 +103,10 @@ export const UserForm: FC<Props> = ({ variant }) => {
       const { data } = response;
       setSubmitting(false);
       setUser(mapUserToFormValues(data));
-      dispatch(showInfoNotifier(strings.info.updateUser));
+      dispatch(showInfoNotifier('Пользователь успешно обновлен'));
     } catch (error) {
       setSubmitting(false);
-      dispatch(showErrorNotifier(strings.error.updateUser, error));
+      dispatch(showErrorNotifier('Ошибка обновления пользователя', error));
       if (error.response?.data?.message) {
         setErrors(error.response.data.message);
       }
@@ -131,9 +125,9 @@ export const UserForm: FC<Props> = ({ variant }) => {
     try {
       await axiosInstance.delete(`/users/${id}`);
       history.push(routes.users.path);
-      dispatch(showInfoNotifier(strings.info.deleteUser));
+      dispatch(showInfoNotifier('Пользователь успешно удален'));
     } catch (error) {
-      dispatch(showErrorNotifier(strings.error.deleteUser, error));
+      dispatch(showErrorNotifier('Ошибка удаления пользователя', error));
     }
   };
 
@@ -154,7 +148,7 @@ export const UserForm: FC<Props> = ({ variant }) => {
     }
   };
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
     <UserFormComponent

@@ -3,7 +3,6 @@ import { Redirect, Route, RouteProps } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { routes } from 'common/constants';
-import { strings } from 'common/strings';
 import { UserRole } from 'entities/User';
 import { RootState } from 'store/store';
 import { showErrorNotifier } from 'store/notifier/notifier.actions';
@@ -34,7 +33,7 @@ export const PrivateRoute: FC<PrivateRouteProps> = ({ children, roles, ...rest }
 
         // если залогинен, но роль не подходит
         if (roles && !roles.includes(authUser.role)) {
-          dispatch(showErrorNotifier(strings.error.forbiddenRole));
+          dispatch(showErrorNotifier('Запрещено для текущей роли'));
           return <Redirect to="/" />;
         }
 

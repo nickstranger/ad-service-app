@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { MUIDataTableColumn, MUIDataTableOptions } from 'mui-datatables';
 import { diff as DiffEditor } from 'react-ace';
 import { DateTime } from 'luxon';
@@ -9,12 +8,8 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 
 import './codeMarker.css';
-import { axiosInstance } from 'common/axios-instance';
-import { strings } from 'common/strings';
+import { useFetch } from 'hooks';
 import { HistoryDocumentType, HistoryEntity } from 'entities/HistoryEntity';
-import { RootState } from 'store/store';
-import { pageLoadingEnd, pageLoadingStart } from 'store/page/page.actions';
-import { showErrorNotifier } from 'store/notifier/notifier.actions';
 import { Table } from 'components/Table/Table';
 import { Loader } from 'components/Loader/Loader';
 
@@ -86,7 +81,8 @@ const transformDataForRender = (histories: HistoryEntity[]) => {
     return {
       ...history,
       changed_at: DateTime.fromISO(history.changed_at).toLocaleString(DateTime.DATETIME_MED),
-      name: history.current_value?.name ||
+      name:
+        history.current_value?.name ||
         history.previous_value?.name ||
         history.current_value?.username ||
         history.previous_value?.username,
@@ -102,34 +98,29 @@ interface Props {
 }
 
 export const History: FC<Props> = ({ tableTitle, documentType }) => {
-  const dispatch = useDispatch();
   const [historyList, setHistoryList] = useState<HistoryEntity[]>([]);
   const [totalNumberRows, setTotalNumberRows] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(20);
-  const loading = useSelector((state: RootState) => state.page.loading);
+
+  const url = `/history?documentType=${documentType}&offset=${
+    pageNumber * rowsPerPage
+  }&limit=${rowsPerPage}`;
+  const { data, isLoading } = useFetch<{ history: HistoryEntity[]; totalCount: number }>(
+    url,
+    { method: 'GET' },
+    {
+      onFailMessage: 'Ошибка загрузки списка изменений'
+    }
+  );
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        dispatch(pageLoadingStart());
-        const response = await axiosInstance.get<{ history: HistoryEntity[]; totalCount: number }>(
-          `/history?documentType=${documentType}&offset=${
-            pageNumber * rowsPerPage
-          }&limit=${rowsPerPage}`
-        );
-        const { history, totalCount } = response.data;
-        setHistoryList(history);
-        setTotalNumberRows(totalCount);
-      } catch (error) {
-        dispatch(showErrorNotifier(strings.error.getHistory, error));
-      } finally {
-        dispatch(pageLoadingEnd());
-      }
-    };
-
-    fetchHistory();
-  }, [documentType, pageNumber, rowsPerPage, dispatch]);
+    if (data) {
+      const { history, totalCount } = data;
+      setHistoryList(history);
+      setTotalNumberRows(totalCount);
+    }
+  }, [data]);
 
   const options: MUIDataTableOptions = {
     // TODO search, filter и sort пока выключены, т.к. нужно реализовать на бекенде
@@ -175,7 +166,7 @@ export const History: FC<Props> = ({ tableTitle, documentType }) => {
     }
   };
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
     <Table

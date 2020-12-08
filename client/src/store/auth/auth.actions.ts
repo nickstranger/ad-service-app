@@ -76,7 +76,7 @@ export const auth = (
       backToPrevRoute();
     } catch (error) {
       setSubmitting(false);
-      dispatch(showErrorNotifier(strings.error.auth, error));
+      dispatch(showErrorNotifier('Ошибка авторизации', error));
     }
   };
 };
