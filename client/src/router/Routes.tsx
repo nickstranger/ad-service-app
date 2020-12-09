@@ -4,15 +4,15 @@ import { routes } from 'common/constants';
 import { PrivateRoute } from './PrivateRoute';
 import { UserRole } from 'entities/User';
 import { HistoryDocumentType } from 'entities/HistoryEntity';
-import { BannerComponentVariant } from 'containers/BannerForm/BannerForm.types';
-import { UserComponentVariant } from 'containers/UserForm/UserForm.types';
-import { Auth } from 'containers/Auth/Auth';
-import { Logout } from 'containers/Auth/Logout';
-import { Banners } from 'containers/Banners/Banners';
-import { BannerForm } from 'containers/BannerForm/BannerForm';
-import { Users } from 'containers/Users/Users';
-import { UserForm } from 'containers/UserForm/UserForm';
-import { History } from 'containers/History/History';
+import { BannerComponentVariant } from 'pages/BannerForm/BannerForm.types';
+import { UserComponentVariant } from 'pages/UserForm/UserForm.types';
+import { Auth } from 'pages/Auth/Auth';
+import { Logout } from 'pages/Auth/Logout';
+import { Banners } from 'pages/Banners/Banners';
+import { BannerForm } from 'pages/BannerForm/BannerForm';
+import { Users } from 'pages/Users/Users';
+import { UserForm } from 'pages/UserForm/UserForm';
+import { History } from 'pages/History/History';
 
 // WARNING!
 //
