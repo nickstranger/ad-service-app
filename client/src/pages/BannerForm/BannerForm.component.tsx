@@ -1,11 +1,11 @@
 import { FC } from 'react';
+import { Link } from 'react-router-dom';
 import { Form, Formik, FormikErrors, FormikHelpers } from 'formik';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import AddBoxIcon from '@material-ui/icons/AddBox';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import SaveIcon from '@material-ui/icons/Save';
 
 import { useBannerFormStyles } from './BannerForm.styles';
@@ -17,6 +17,7 @@ import { Input } from 'components/Input/Input';
 import { ConfirmationDialog } from 'components/ConfirmationDialog/ConfirmationDialog';
 import { CodeEditor } from 'components/CodeEditor/CodeEditor';
 import { Status } from 'components/Status/Status';
+import { Dropdown } from 'components/Dropdown/Dropdown';
 import { AuthState } from 'store/auth/auth.types';
 import { routes } from 'common/constants';
 
@@ -66,16 +67,20 @@ export const BannerFormComponent: FC<Props> = ({
     </Button>
   ) : null;
 
-  const deleteBannerBtn =
+  const dropdown =
     formEnabled && isUpdateFormVariant ? (
-      <Button
-        type="button"
-        color="secondary"
-        startIcon={<DeleteForeverIcon />}
-        onClick={handleStartDeleting}
-      >
-        Удалить
-      </Button>
+      <Dropdown>
+        <MenuItem
+          component={Link}
+          to={{
+            pathname: routes.createBanner.path,
+            state: initialValues
+          }}
+        >
+          Копировать баннер
+        </MenuItem>
+        <MenuItem onClick={handleStartDeleting}>Удалить</MenuItem>
+      </Dropdown>
     ) : null;
 
   const bannerStatusOptions = Object.values(BannerStatus).map((status) => (
@@ -155,7 +160,7 @@ export const BannerFormComponent: FC<Props> = ({
               </Grid>
               <Grid item xs={12} className={classes.actions}>
                 {createBannerBtn}
-                {deleteBannerBtn}
+                {dropdown}
               </Grid>
             </Grid>
           </Form>

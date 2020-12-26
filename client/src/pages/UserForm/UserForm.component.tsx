@@ -3,7 +3,6 @@ import { Form, Formik, FormikErrors, FormikHelpers } from 'formik';
 import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import Grid from '@material-ui/core/Grid';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import SaveIcon from '@material-ui/icons/Save';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
 
@@ -18,6 +17,7 @@ import { Input } from 'components/Input/Input';
 import { ConfirmationDialog } from 'components/ConfirmationDialog/ConfirmationDialog';
 import { Status } from 'components/Status/Status';
 import { Role } from 'components/Role/Role';
+import { Dropdown } from 'components/Dropdown/Dropdown';
 
 interface Props {
   variant: UserComponentVariant;
@@ -56,16 +56,11 @@ export const UserFormComponent: FC<Props> = ({
   const submitBtnTitle = isCreateFormVariant ? 'Создать' : 'Сохранить';
   const submitBtnIcon = isCreateFormVariant ? <PersonAddIcon /> : <SaveIcon />;
 
-  const deleteUserBtn =
+  const dropdown =
     isAdmin && isUpdateFormVariant ? (
-      <Button
-        type="button"
-        color="secondary"
-        startIcon={<DeleteForeverIcon />}
-        onClick={handleStartDeleting}
-      >
-        Удалить
-      </Button>
+      <Dropdown>
+        <MenuItem onClick={handleStartDeleting}>Удалить</MenuItem>
+      </Dropdown>
     ) : null;
 
   const userRoleOptions = Object.values(UserRole).map((role) => (
@@ -173,7 +168,7 @@ export const UserFormComponent: FC<Props> = ({
                 >
                   {submitBtnTitle}
                 </Button>
-                {deleteUserBtn}
+                {dropdown}
               </div>
             ) : null}
           </Form>
