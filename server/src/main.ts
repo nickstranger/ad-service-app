@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
+import { Logger, LogLevel } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { AppModule } from 'app.module';
@@ -7,7 +7,12 @@ import { AppModule } from 'app.module';
 async function bootstrap() {
   const logger = new Logger('bootstrap');
 
-  const app = await NestFactory.create(AppModule);
+  const logLevels: LogLevel[] =
+    process.env.NODE_ENV === 'prod'
+      ? ['error', 'warn']
+      : ['error', 'warn', 'log', 'verbose', 'debug'];
+
+  const app = await NestFactory.create(AppModule, { logger: logLevels });
   app.setGlobalPrefix('api');
 
   const configService = app.get(ConfigService);

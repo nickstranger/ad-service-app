@@ -8,7 +8,7 @@ import { axiosInstance } from 'common/axios-instance';
 import { routes } from 'common/constants';
 import { strings } from 'common/strings';
 import { filterEmptyObjectValues } from 'common/utils';
-import { useFetch } from 'hooks';
+import { useFetch, useLocationState } from 'hooks';
 import { RootState } from 'store/store';
 import { Banner, BannerStatus } from 'entities/Banner';
 import { showErrorNotifier, showInfoNotifier } from 'store/notifier/notifier.actions';
@@ -57,8 +57,9 @@ export const BannerForm: FC<Props> = ({ variant }) => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const authUser = useSelector((state: RootState) => state.auth);
+  const locationState = useLocationState<BannerFormValues>();
 
-  const [banner, setBanner] = useState(initialValues);
+  const [banner, setBanner] = useState(locationState || initialValues);
   const [isDeletingStarted, setIsDeletingStarted] = useState(false);
 
   const { data, isLoading } = useFetch<Banner | null>(

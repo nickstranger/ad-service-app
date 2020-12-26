@@ -6,12 +6,9 @@ export const useUserStyles = makeStyles((theme: Theme) =>
       marginBottom: theme.spacing(3)
     },
     actions: {
-      '& > *': {
-        marginRight: theme.spacing(1),
-        '&:last-child': {
-          marginRight: 0
-        }
-      }
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
     }
   })
 );

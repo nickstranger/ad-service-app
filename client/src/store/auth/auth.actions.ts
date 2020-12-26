@@ -100,14 +100,14 @@ export const authCheckState = () => {
     const expirationDate = Number(localStorage.getItem('expirationDate'));
 
     if (_id && username && role && accessToken && expirationDate) {
-      const now = new Date();
-      const convertedExpirationDate = +new Date(expirationDate);
-      const expiresIn = new Date(expirationDate).getTime() - now.getTime();
-      if (convertedExpirationDate <= +now) {
+      const now = Number(new Date());
+      const expiresIn = expirationDate - now;
+      if (expirationDate <= now) {
         // если срок токена истек, то логаут
         dispatch(authLogout());
-      } else if (+now > convertedExpirationDate - expiresIn / 2) {
-        // если срок токена не истек, но осталось меньше половины от срока, то рефрешим
+      } else if (now > expirationDate - 12 * 60 * 60 * 1000) {
+        // если срок токена не истек, но осталось меньше 12 часов до истечения, то рефрешим
+        dispatch(authSuccess({ _id, username, role, accessToken, expiresIn }));
         dispatch(authRefresh());
       } else {
         dispatch(authSuccess({ _id, username, role, accessToken, expiresIn }));
